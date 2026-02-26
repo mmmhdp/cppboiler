@@ -18,8 +18,8 @@ all: release
 
 # ===== run =====
 .PHONY: run
-run: all
-	./$(BUILD_DIR)/$(TARGET)
+run: debug
+	./$(BUILD_DIR_BUILD)/$(TARGET)
 
 .PHONY: r
 r: run 
