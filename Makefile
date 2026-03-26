@@ -1,4 +1,4 @@
-# ===== config =====
+
 CMAKE ?= cmake
 GENERATOR ?=
 
@@ -8,23 +8,26 @@ BUILD_DIR_ASAN   ?= build-asan
 
 TARGET ?= REPLACE_WITH_TARGET_impl
 
-# valgrind options
 VALGRIND ?= valgrind
 VG_OPTS  ?= --leak-check=full --show-leak-kinds=all --track-origins=yes
 
-# ===== default =====
 .PHONY: all
 all: release
 
-# ===== run =====
 .PHONY: run
-run: debug
-	./$(BUILD_DIR_BUILD)/$(TARGET)
+run: all
+	./$(BUILD_DIR)/$(TARGET)
 
 .PHONY: r
 r: run 
 
-# ===== test =====
+.PHONY: test-debug
+test-debug: debug
+	cd $(BUILD_DIR_DEBUG) && ctest --rerun-failed --output-on-failure
+
+.PHONY: td
+td: test-debug
+
 .PHONY: test
 test: all
 	cd $(BUILD_DIR) && ctest --rerun-failed --output-on-failure
@@ -32,12 +35,10 @@ test: all
 .PHONY: t
 t: test
 
-# ===== docs =====
 .PHONY: docs
 docs:
 	doxygen Doxyfile
 
-# ===== release =====
 .PHONY: release
 release:
 	$(CMAKE) -S . -B $(BUILD_DIR) \
@@ -45,7 +46,6 @@ release:
 		$(GENERATOR)
 	$(CMAKE) --build $(BUILD_DIR)
 
-# ===== debug =====
 .PHONY: debug
 debug:
 	$(CMAKE) -S . -B $(BUILD_DIR_DEBUG) \
@@ -56,7 +56,6 @@ debug:
 .PHONY: d
 d: debug
 
-# ===== asan =====
 .PHONY: asan
 asan:
 	$(CMAKE) -S . -B $(BUILD_DIR_ASAN) \
@@ -65,10 +64,10 @@ asan:
 		$(GENERATOR)
 	$(CMAKE) --build $(BUILD_DIR_ASAN)
 	./$(BUILD_DIR_ASAN)/$(TARGET)
+
 .PHONY: as
 as: asan
 
-# ===== valgrind =====
 .PHONY: valgrind
 valgrind: debug
 	$(VALGRIND) $(VG_OPTS) ./$(BUILD_DIR_DEBUG)/$(TARGET)
@@ -76,7 +75,6 @@ valgrind: debug
 .PHONY: v
 v: valgrind 
 
-# ===== clean =====
 .PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR) $(BUILD_DIR_DEBUG) $(BUILD_DIR_ASAN)
